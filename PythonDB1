@@ -1,0 +1,68 @@
+import sqlite3
+
+class DB(object):
+
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        self.connection = sqlite3.connect(self.path)
+        self.cursor = self.connection.cursor()
+        return self.cursor
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.connection.commit()
+        self.connection.close()
+
+def open_connection():
+    connection = sqlite3.connect("db")
+    cursor = connection.cursor()
+    return connection, cursor
+
+def close_connection(connection):
+    connection.commit()
+    connection.close()
+
+def create_table_books():
+    connection = sqlite3.connect("db")
+    cursor = connection.cursor()
+    query = """CREATE TABLE IF NOT EXISTS Books(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    author TEXT,
+    pages INTEGER)"""
+    cursor.execute(query)
+    connection.commit()
+    connection.close()
+
+create_table_books()
+
+def create_book2():
+    connection, cursor = open_connection()
+    query = """INSERT INTO Books(title, author, pages) VALUES('KNYGA','rasytojas','2')"""
+    cursor.execute(query)
+    connection.commit()
+    connection.close()
+
+def create_book():
+    query = """INSERT INTO Books(title, author, pages) VALUES('KNYGA2','rasytoja','4')"""
+    with DB("db") as db:
+        db.execute(query)
+
+create_book2()
+
+def get_book():
+    query = """SELECT * FROM Books"""
+    with DB("db") as db:
+        db.execute(query)
+        data = db.fetchall()
+        for row in data:
+            print(row)
+
+def drop_table():
+    query = "DROP TABLE Books"
+    with DB("db") as db:
+        db.execute(query)
+
+
+get_book()
